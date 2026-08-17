@@ -1,0 +1,20 @@
+# Environment & secrets
+.env
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Data (scraped outputs are large; example outputs are committed under data/outputs selectively)
+data/chroma/
+data/index.sqlite
+data/raw/
+
+# OS/editor
+.DS_Store
+.commandcode/

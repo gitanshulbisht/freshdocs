@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FreshDocs — always-fresh docs answers</title>
+  <style>
+    :root {
+      --bg: #0d1117; --panel: #161b22; --panel-2: #1c2330; --border: #30363d;
+      --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950;
+      --red: #f85149; --yellow: #d29922;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex; height: 100vh; overflow: hidden;
+    }
+    main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header .tag { font-size: 12px; color: var(--accent); border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 12px; }
+    #thread { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .msg { max-width: 760px; padding: 12px 16px; border-radius: 10px; line-height: 1.55; }
+    .msg.user { align-self: flex-end; background: var(--panel-2); border: 1px solid var(--border); white-space: pre-wrap; }
+    .msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); }
+    .msg.bot .answer { white-space: pre-wrap; }
+    .cites { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .cite { border: 1px solid var(--border); border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 8px 12px; background: var(--panel-2); font-size: 13px; }
+    .cite a { color: var(--accent); text-decoration: none; }
+    .cite .src { color: var(--muted); font-size: 12px; }
+    .cite .snip { color: var(--muted); margin-top: 4px; font-size: 12.5px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    #composer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+    #chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 20px 8px; }
+    .chip { font-size: 12px; padding: 4px 10px; border-radius: 14px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--muted); cursor: pointer; user-select: none; }
+    .chip.on { background: #1f3a5f; color: var(--accent); border-color: var(--accent); }
+    #question { flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 10px 14px; font-size: 14px; resize: none; }
+    #ask { background: var(--accent); color: #04101f; border: 0; border-radius: 8px;
+      padding: 0 20px; font-weight: 600; cursor: pointer; }
+    aside { width: 320px; border-left: 1px solid var(--border); overflow-y: auto; padding: 16px; background: var(--panel); }
+    aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 0 10px; }
+    .src-row { display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+    .src-row .name { font-size: 13px; }
+    .src-row .meta { font-size: 11.5px; color: var(--muted); }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 6px; }
+    .dot.ok { background: var(--green); } .dot.bad { background: var(--red); } .dot.warn { background: var(--yellow); }
+    .event { font-size: 12px; color: var(--muted); padding: 6px 0; border-bottom: 1px dashed var(--border); }
+    .event b { color: var(--text); }
+    .event.heal b { color: var(--yellow); }
+    .empty { color: var(--muted); font-size: 13px; padding: 40px 20px; text-align: center; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>FreshDocs</h1>
+      <span class="tag">self-healing multi-source docs</span>
+      <span class="tag" style="color:var(--muted)">Bright Data Scraper Studio</span>
+    </header>
+    <div id="chips"></div>
+    <div id="thread">
+      <div class="msg bot"><div class="answer">Ask me anything about Docker, Kubernetes, AWS EKS, Argo Workflows, or LangChain docs. Every answer cites the exact page it came from — and the index refreshes itself nightly.</div></div>
+    </div>
+    <div id="composer">
+      <textarea id="question" rows="1" placeholder="e.g. How do I persist data between container restarts in Docker?"></textarea>
+      <button id="ask">Ask</button>
+    </div>
+  </main>
+  <aside>
+    <h2>Sources</h2>
+    <div id="sources"><div class="empty">loading…</div></div>
+    <h2>Pipeline events</h2>
+    <div id="events"><div class="empty">loading…</div></div>
+  </aside>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let selected = new Set();
+
+async function loadSources() {
+  const res = await fetch("/api/sources");
+  const sources = await res.json();
+  const chips = $("chips"); chips.innerHTML = "";
+  sources.forEach(s => {
+    const chip = document.createElement("span");
+    chip.className = "chip" + (selected.has(s.key) ? " on" : "");
+    chip.textContent = s.name;
+    chip.onclick = () => {
+      if (selected.has(s.key)) selected.delete(s.key); else selected.add(s.key);
+      loadSources();
+    };
+    chips.appendChild(chip);
+  });
+}
+
+async function loadStatus() {
+  const res = await fetch("/api/status");
+  const status = await res.json();
+  const sources = $("sources"); sources.innerHTML = "";
+  (status.sources || []).forEach(s => {
+    const row = document.createElement("div");
+    row.className = "src-row";
+    const healthy = (status.runs || []).find(r => r.source === s.source && r.healthy !== null);
+    const dot = s.pages > 0 ? "ok" : "warn";
+    row.innerHTML = `<span class="name">${s.source}<span class="dot ${dot}"></span></span>
+      <span class="meta">${s.pages} pages · ${s.last_refresh ? s.last_refresh.slice(0,10) : "never"}</span>`;
+    sources.appendChild(row);
+  });
+  const events = $("events"); events.innerHTML = "";
+  const heals = (status.heals || []).map(h => ({t: h.created_at, html: `<b>heal</b> ${h.source}: ${h.symptom.slice(0,70)}…`}));
+  const runs = (status.runs || []).slice(0, 12).map(r => ({
+    t: r.started_at,
+    html: `<b>${r.source}</b> rows=${r.rows ?? "–"} ${r.notes || ""} ${r.healthy === 0 ? "<span style='color:var(--red)'>UNHEALTHY</span>" : ""}`
+  }));
+  const all = [...heals, ...runs].sort((a,b) => b.t.localeCompare(a.t)).slice(0, 15);
+  if (!all.length) events.innerHTML = "<div class='empty'>no runs yet — run scripts/run_refresh.sh</div>";
+  all.forEach(e => {
+    const div = document.createElement("div");
+    div.className = "event" + (e.html.startsWith("<b>heal</b>") ? " heal" : "");
+    div.innerHTML = e.html + `<div style="font-size:11px">${e.t.slice(0,16)}</div>`;
+    events.appendChild(div);
+  });
+}
+
+function addMsg(cls, html) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.innerHTML = html;
+  $("thread").appendChild(div);
+  $("thread").scrollTop = $("thread").scrollHeight;
+}
+
+async function ask() {
+  const q = $("question").value.trim();
+  if (!q) return;
+  addMsg("user", q.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])));
+  $("question").value = "";
+  addMsg("bot", "<div class='answer' style='color:var(--muted)'>thinking…</div>");
+  const res = await fetch("/api/ask", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: q, sources: selected.size ? [...selected] : null })
+  });
+  const data = await res.json();
+  $("thread").lastElementChild.remove();
+  const cites = (data.citations || []).map(c => `
+    <div class="cite">
+      <a href="${c.url}" target="_blank" rel="noopener">[${c.index}] ${c.title || c.url}</a>
+      <span class="src"> · ${c.source}</span>
+      <div class="snip">${c.snippet.replace(/[<>&]/g, c2 => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c2]))}</div>
+    </div>`).join("");
+  addMsg("bot", `<div class="answer">${data.answer.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>
+    ${cites ? `<div class="cites">${cites}</div>` : ""}`);
+}
+
+$("ask").onclick = ask;
+$("question").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } });
+loadSources();
+loadStatus();
+setInterval(loadStatus, 15000);
+</script>
+</body>
+</html>

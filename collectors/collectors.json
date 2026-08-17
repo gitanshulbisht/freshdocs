@@ -1,0 +1,59 @@
+{
+  "$comment": "Source registry for FreshDocs. collector_id is filled in after bdata scraper create. expected_urls is the minimum number of pages we expect from the sitemap (used by health checks).",
+  "sources": [
+    {
+      "key": "docker",
+      "category": "DevOps",
+      "name": "Docker Docs",
+      "sitemap_url": "https://docs.docker.com/sitemap.xml",
+      "collector_id": "",
+      "expected_urls": 800,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://docs.docker.com/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+    },
+    {
+      "key": "kubernetes",
+      "category": "DevOps",
+      "name": "Kubernetes Docs",
+      "sitemap_url": "https://kubernetes.io/en/sitemap.xml",
+      "collector_id": "",
+      "expected_urls": 800,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://kubernetes.io/en/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+    },
+    {
+      "key": "aws-eks",
+      "category": "Cloud",
+      "name": "AWS EKS User Guide",
+      "sitemap_url": "https://docs.aws.amazon.com/eks/latest/userguide/sitemap.xml",
+      "collector_id": "",
+      "expected_urls": 400,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://docs.aws.amazon.com/eks/latest/userguide/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+    },
+    {
+      "key": "argo-workflows",
+      "category": "CI/CD",
+      "name": "Argo Workflows Docs",
+      "sitemap_url": "https://argo-workflows.readthedocs.io/en/release-4.1/sitemap.xml",
+      "collector_id": "",
+      "expected_urls": 200,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://argo-workflows.readthedocs.io/en/release-4.1/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+    },
+    {
+      "key": "langchain",
+      "category": "AI",
+      "name": "LangChain Docs",
+      "sitemap_url": "https://docs.langchain.com/sitemap.xml",
+      "collector_id": "",
+      "expected_urls": 1200,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://docs.langchain.com/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+    },
+    {
+      "key": "fixture",
+      "category": "Demo",
+      "name": "Fixture Docs (self-healing demo)",
+      "sitemap_url": "https://<your-github-pages>.github.io/freshdocs-fixture/sitemap.xml",
+      "collector_id": "",
+      "expected_urls": 4,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://<your-github-pages>.github.io/freshdocs-fixture/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts). Return one row per page."
+    }
+  ]
+}

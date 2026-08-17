@@ -1,0 +1,33 @@
+[project]
+name = "freshdocs"
+version = "0.1.0"
+description = "Self-healing multi-source docs RAG chatbot powered by Bright Data Scraper Studio"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+    "openai>=1.40",
+    "chromadb>=0.5",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.2",
+    "markdownify>=0.13",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "respx>=0.21"]
+
+[project.scripts]
+freshdocs = "freshdocs.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
