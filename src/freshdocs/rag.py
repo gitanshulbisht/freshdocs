@@ -1,4 +1,10 @@
-"""Embedding + vector store + retrieval + answer generation."""
+"""Embedding + vector store + retrieval + answer generation.
+
+Supports two LLM providers, selectable via FRESHDOCS_LLM_PROVIDER:
+  - "openrouter" (default): chat + embeddings via https://openrouter.ai (free tier models available).
+  - "openai": chat + embeddings via OpenAI.
+This lets the stack run on a single key (OpenRouter) without an OpenAI key.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +23,11 @@ log = logging.getLogger(__name__)
 COLLECTION_NAME = "freshdocs"
 TOP_K = 6
 
+OPENROUTER_HEADERS = {
+    "HTTP-Referer": "https://freshdocs.local",
+    "X-Title": "FreshDocs",
+}
+
 
 class RagError(RuntimeError):
     pass
@@ -24,14 +35,35 @@ class RagError(RuntimeError):
 
 class Rag:
     def __init__(self, data_dir: Path, api_key: Optional[str] = None,
-                 embed_model: Optional[str] = None, answer_model: Optional[str] = None) -> None:
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
-        if not self.api_key:
-            raise RagError("OPENAI_API_KEY is not set")
+                 embed_model: Optional[str] = None, answer_model: Optional[str] = None,
+                 provider: Optional[str] = None) -> None:
+        provider = (provider or os.environ.get("FRESHDOCS_LLM_PROVIDER", "openrouter")).lower()
+        if provider not in ("openrouter", "openai"):
+            raise RagError(f"Unsupported LLM provider: {provider}")
 
-        self.embed_model = embed_model or os.environ.get("FRESHDOCS_EMBED_MODEL", "text-embedding-3-small")
-        self.answer_model = answer_model or os.environ.get("FRESHDOCS_ANSWER_MODEL", "gpt-4o-mini")
-        self.client = OpenAI(api_key=self.api_key)
+        self.provider = provider
+        self.api_key = api_key or (
+            os.environ.get("OPENROUTER_API_KEY") if provider == "openrouter"
+            else os.environ.get("OPENAI_API_KEY", "")
+        )
+        if not self.api_key:
+            key_name = "OPENROUTER_API_KEY" if provider == "openrouter" else "OPENAI_API_KEY"
+            raise RagError(f"{key_name} is not set")
+
+        self.embed_model = embed_model or os.environ.get("FRESHDOCS_EMBED_MODEL")
+        self.answer_model = answer_model or os.environ.get("FRESHDOCS_ANSWER_MODEL")
+        if provider == "openrouter":
+            self.embed_model = self.embed_model or os.environ.get("FRESHDOCS_OPENROUTER_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b")
+            self.answer_model = self.answer_model or os.environ.get("FRESHDOCS_OPENROUTER_CHAT_MODEL", "nvidia/nemotron-3.5-lightning:free")
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url="https://openrouter.ai/api/v1",
+                default_headers=OPENROUTER_HEADERS,
+            )
+        else:
+            self.embed_model = self.embed_model or os.environ.get("FRESHDOCS_EMBED_MODEL", "text-embedding-3-small")
+            self.answer_model = self.answer_model or os.environ.get("FRESHDOCS_ANSWER_MODEL", "gpt-4o-mini")
+            self.client = OpenAI(api_key=self.api_key)
 
         chroma_dir = data_dir / "chroma"
         chroma_dir.mkdir(parents=True, exist_ok=True)
