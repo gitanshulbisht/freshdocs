@@ -2,7 +2,7 @@
 
 One chatbot that answers from the *latest* docs across Docker, Kubernetes, AWS EKS, Argo CD (CI/CD), GitHub Actions (CI/CD), and LangChain (AI) — with citations — powered by custom Bright Data Scraper Studio Sitemap scrapers that re-run on schedule, detect changes, incrementally re-embed only what changed, and **self-heal** when a docs site redesigns.
 
-Built for the [Into the Scrape-Verse](https://www.wemakedevs.org/hackathons/scrape-verse) hackathon (WeMakeDevs x Bright Data, Aug 17–23, 2026).
+Built for the [Into the Scrape-Verse](https://www.wemakedevs.org/hackathons/scrape-verse) hackathon (WeMakeDevs x Bright Data, Aug 17–23, 2026). [GitHub repo](https://github.com/gitanshulbisht/freshdocs)
 
 ## Problem
 
