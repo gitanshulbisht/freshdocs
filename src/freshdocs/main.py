@@ -50,7 +50,7 @@ async def sources():
 @app.post("/api/ask", response_model=Answer)
 async def ask(request: AskRequest) -> Answer:
     if rag is None:
-        return Answer(answer="Server is not configured (OPENAI_API_KEY missing).", citations=[])
+        return Answer(answer="Server is not configured (LLM provider API key missing).", citations=[])
     return rag.answer(request.question, sources=request.sources)
 
 

@@ -1,0 +1,1 @@
+{"collector_id":"c_msy8jxs51evybyw114","name":"docker-docs","status":"done","completed_steps":["prepare_intent_analyzer","planner","discovery","collector_mainatiner","output_schema_generator","code_generator","input_schema_generator","preview_runner","preview_picker"],"view_url":"https://brightdata.com/cp/scrapers/c_msy8jxs51evybyw114","created_at":"2026-08-18T05:42:12.677Z"}

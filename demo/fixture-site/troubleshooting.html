@@ -1,32 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>FixtureDocs — Troubleshooting</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <title>Troubleshooting — AcmeDB</title>
+  <meta name="last-modified" content="2026-08-11">
+  <style>article{max-width:720px;margin:2rem auto;font-family:sans-serif;line-height:1.6}</style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="index.html">Overview</a>
-    <a href="install.html">Install</a>
-    <a href="api.html">API</a>
-    <a href="troubleshooting.html">Troubleshooting</a>
-  </nav>
-  <main class="content">
-    <h1 class="title">Troubleshooting FixtureDocs</h1>
-    <h2 class="section-heading">The server won't start</h2>
-    <p class="body-text">
-      If the server fails to start, check that port 9200 is free:
-    </p>
-    <pre class="code-block">lsof -i :9200</pre>
-    <p class="body-text">
-      You can change the port by setting <code>FIXTUREDOCS_PORT</code> before launch.
-    </p>
-    <h2 class="section-heading">Search returns no results</h2>
-    <p class="body-text">
-      An empty search result usually means the document was never indexed. Re-index
-      with <code>fixturedocs index --force</code> and try the query again.
-    </p>
-  </main>
+<article>
+  <h1>Troubleshooting</h1>
+  <h2>Connection refused on port 5432</h2>
+  <p>Ensure the container is running (<code>docker ps</code>). If it exited, run <code>acme admin restart my-cluster</code> and check the logs.</p>
+  <h2>Error PIT-123: quorum lost</h2>
+  <p>This occurs when a majority of nodes are unavailable. Restart the affected node with <code>acme admin restart node-<id></code> and verify recovery via <code>acme admin logs --follow</code>.</p>
+  <h2>Slow queries</h2>
+  <p>Add an index with <code>CREATE INDEX ON events(ts)</code>. Inspect plans with <code>EXPLAIN ANALYZE ...</code>.</p>
+</article>
 </body>
 </html>

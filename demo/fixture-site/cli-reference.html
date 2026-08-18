@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CLI Reference — AcmeDB</title>
+  <meta name="last-modified" content="2026-08-07">
+  <style>article{max-width:720px;margin:2rem auto;font-family:sans-serif;line-height:1.6}</style>
+</head>
+<body>
+<article>
+  <h1>AcmeDB CLI Reference</h1>
+  <p>The <code>acme</code> CLI manages instances, databases, and runs SQL.</p>
+  <h2>acme db create</h2>
+  <pre><code>acme db create mydb --owner admin@example.com --size 10GB</code></pre>
+  <p>Creates a new database owned by the given user. Available sizes: <code>1GB</code>, <code>10GB</code>, <code>100GB</code>.</p>
+  <h2>acme sql</h2>
+  <pre><code>acme sql mydb "SELECT count(*) FROM users;"</code></pre>
+  <p>Runs a read-only query and prints results as a table.</p>
+  <h2>acme admin logs</h2>
+  <pre><code>acme admin logs my-cluster --tail 100 --follow</code></pre>
+  <p>Streams the last 100 log lines; use <code>--follow</code> to tail live.</p>
+</article>
+</body>
+</html>

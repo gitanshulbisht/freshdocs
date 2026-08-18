@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://gitanshulbisht.github.io/freshdocs-fixture/cli-reference.html",
+    "title": "AcmeDB CLI Reference",
+    "body_text": "# AcmeDB CLI Reference\n\n  The `acme` CLI manages instances, databases, and runs SQL.\n\n  ## acme db create\n\n  ```\nacme db create mydb --owner admin@example.com --size 10GB\n```\n\n  Creates a new database owned by the given user. Available sizes: `1GB`, `10GB`, `100GB`.\n\n  ## acme sql\n\n  ```\nacme sql mydb \"SELECT count(*) FROM users;\"\n```\n\n  Runs a read-only query and prints results as a table.\n\n  ## acme admin logs\n\n  ```\nacme admin logs my-cluster --tail 100 --follow\n```\n\n  Streams the last 100 log lines; use `--follow` to tail live.",
+    "last_updated": null
+  },
+  {
+    "url": "https://gitanshulbisht.github.io/freshdocs-fixture/index.html",
+    "title": "AcmeDB Documentation",
+    "body_text": "# AcmeDB Documentation\n\n  AcmeDB is a distributed SQL database built for modern, globally distributed applications. It offers strong consistency, automatic sharding, and a PostgreSQL-compatible wire protocol.\n\n  \n    Installation\n    Query Syntax\n    CLI Reference\n    Troubleshooting\n  \n  ## Key concepts\n\n  An instance is a logical cluster of database nodes. An instance owns one or more databases. Databases contain schemas, which contain tables. Connections are made with `acme://HOST:5432/dbname`.",
+    "last_updated": null
+  },
+  {
+    "url": "https://gitanshulbisht.github.io/freshdocs-fixture/troubleshooting.html",
+    "title": "Troubleshooting",
+    "body_text": "# Troubleshooting\n\n  ## Connection refused on port 5432\n\n  Ensure the container is running (`docker ps`). If it exited, run `acme admin restart my-cluster` and check the logs.\n\n  ## Error PIT-123: quorum lost\n\n  This occurs when a majority of nodes are unavailable. Restart the affected node with `acme admin restart node-` and verify recovery via `acme admin logs --follow`.\n\n  ## Slow queries\n\n  Add an index with `CREATE INDEX ON events(ts)`. Inspect plans with `EXPLAIN ANALYZE ...`.",
+    "last_updated": null
+  },
+  {
+    "url": "https://gitanshulbisht.github.io/freshdocs-fixture/query-syntax.html",
+    "title": "Query Syntax",
+    "body_text": "# Query Syntax\n\n  AcmeDB supports a PostgreSQL-compatible SQL dialect. All statements are transactional.\n\n  ## Selecting rows\n\n  ```\nSELECT name, balance FROM accounts WHERE balance &gt; 1000 ORDER BY balance DESC LIMIT 10;\n```\n\n  Filtering uses standard `WHERE` with `AND`/`OR`. Predicate pushdown is automatic across shards.\n\n  ## Joins\n\n  Inner, left, and right joins are supported. Cross-shard joins incur a network round-trip per participant shard.",
+    "last_updated": null
+  },
+  {
+    "url": "https://gitanshulbisht.github.io/freshdocs-fixture/installation.html",
+    "title": "Installing AcmeDB",
+    "body_text": "# Installing AcmeDB\n\n  ## Prerequisites\n\n  AcmeDB runs on Linux x86_64 hosts with at least 4 GB RAM. Docker is supported for local development.\n\n  ## Docker install (quickstart)\n\n  ```\ndocker run -d -p 5432:5432 --name acmedb \\\n  acme/acmedb:latest --auth root:secretpw\n```\n\n  The server starts in ~5 seconds and listens on port `5432`. The default superuser is `root`.\n\n  ## acmectl CLI\n\n  Install the CLI with: `curl get.acme.dev/cli | sh`. Then run `acmectl cluster create my-cluster --size m5.large` to provision a managed instance.",
+    "last_updated": null
+  }
+]

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Query Syntax — AcmeDB</title>
+  <meta name="last-modified" content="2026-08-08">
+  <style>article{max-width:720px;margin:2rem auto;font-family:sans-serif;line-height:1.6}</style>
+</head>
+<body>
+<article>
+  <h1>Query Syntax</h1>
+  <p>AcmeDB supports a PostgreSQL-compatible SQL dialect. All statements are transactional.</p>
+  <h2>Selecting rows</h2>
+  <pre><code>SELECT name, balance FROM accounts WHERE balance &gt; 1000 ORDER BY balance DESC LIMIT 10;</code></pre>
+  <p>Filtering uses standard <code>WHERE</code> with <code>AND</code>/<code>OR</code>. Predicate pushdown is automatic across shards.</p>
+  <h2>Joins</h2>
+  <p>Inner, left, and right joins are supported. Cross-shard joins incur a network round-trip per participant shard.</p>
+</article>
+</body>
+</html>

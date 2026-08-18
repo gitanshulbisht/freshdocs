@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -f .env ]]; then
-  echo "missing .env — copy .env.example and fill in BRIGHT_DATA_API_TOKEN, BRIGHT_DATA_COLLECTOR_IDS, OPENAI_API_KEY" >&2
+  echo "missing .env — copy .env.example and fill in BRIGHT_DATA_API_TOKEN, BRIGHT_DATA_COLLECTOR_IDS, OPENROUTER_API_KEY" >&2
   exit 2
 fi
 set -a; source .env; set +a

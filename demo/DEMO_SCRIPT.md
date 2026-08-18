@@ -1,56 +1,67 @@
-# FreshDocs — 4-minute demo storyboard
+# FreshDocs Demo Storyboard (3 minutes)
 
-**Goal:** show the full loop judges are asked to look for: CLI create → run → real downstream (chatbot) → site change breaks the scraper → health check notices → `bdata scraper heal` → approve → recover. Same Collector ID throughout.
+## Setup (pre-demo, 1 min)
+```bash
+# One terminal: start the API + web UI
+bash scripts/run_refresh.sh --source fixture   # scrape + index the fixture docs
+uvicorn src.freshdocs.main:app --reload         # opens http://localhost:8000
+```
 
-## 0: Setup (before recording)
+**Prereq:** `.env` has `BRIGHT_DATA_API_TOKEN` + `BRIGHT_DATA_COLLECTOR_IDS` (with the fixture collector ID).
 
-- Fixture site deployed to GitHub Pages, sitemap URL set in `collectors/collectors.json`.
-- Fixture collector created and its ID pinned in `CLAUDE.md`.
-- Full ingest run: `bash scripts/run_refresh.sh` (Docker + fixture minimum).
-- App running: `uvicorn src.freshdocs.main:app`.
+---
 
-## 1: The problem (30s)
+## Demo Flow
 
-- "Devs live in docs. Docs change weekly. RAG pipelines don't."
-- Show Docker's sitemap lastmod dates from this week vs a stale chatbot answer.
+### 1. Healthy chatbot answers from fixture docs (30s)
+Open http://localhost:8000 in a browser.
 
-## 2: Build the scraper from the terminal (45s)
+- Ask: **"How do I install AcmeDB with Docker?"**
+- Bot answers from the indexed fixture docs, citing the installation page URL.
+- Source chip "fixture" shows a green freshness badge: `5 pages · 2026-08-11`.
 
-- `npx -p @brightdata/cli bdata scraper create https://docs.docker.com/sitemap.xml "<prompt>"`
-- Scroll the AI-generated schema; approve. Note: "5–15 min generation — I pre-built five of these; IDs are pinned in CLAUDE.md."
-- `bdata scraper run c_docker https://docs.docker.com/sitemap.xml --pretty` → show rows.
+### 2. Simulate a docs site redesign (30s)
+In another terminal, "break" the fixture site:
 
-## 3: The product (60s)
+```bash
+bash scripts/break_fixture.sh
+cd demo/fixture-site && git add -A && git commit -m "redesign: rename CSS classes" && git push
+```
 
-- Open http://localhost:8000. Ask: *"How do I persist data between container restarts in Docker?"* → answer + citations.
-- Show source chips: filter to just Kubernetes, ask a K8s question.
-- Show right rail: per-source page counts, freshness, run history.
+This renames CSS classes (`.content`→`.content-v2`, `.body-text`→`.article-body`, etc.) and downgrades `<h1>`→`<h2>`. The Bright Data scraper's selectors now miss the body text.
 
-## 4: The scrape pipeline in CI (30s)
+### 3. Run refresh → health check catches it (30s)
+```bash
+bash scripts/run_refresh.sh --source fixture
+```
 
-- Open `.github/workflows/refresh.yml`: nightly cron → `POST /dca/trigger` → poll `/dca/dataset` → health check → diff → re-embed only changed pages.
-- Show a run's log line: `docker: added=0 changed=3 removed=0 unchanged=997`.
+Output:
+```
+fixture: HEALTH FAILURE — 20% of rows have an empty body_text field — the content
+extraction is broken, probably because the page layout changed.
+```
 
-## 5: Break it (45s)
+The bot now can't answer the same question — it says "I couldn't find anything about that."
 
-- `bash scripts/break_fixture.sh` → commit → push to the fixture repo (classes renamed, h1→h2 — the classic "site changed a class name" break).
-- Run `bash scripts/run_refresh.sh --source fixture` → health check fails:
-  `HEALTH FAILURE [fixture] -> 100% of rows have an empty body_text field...`
+### 4. Self-heal → recover (30s)
+```bash
+python -m freshdocs.cli heal c_msya0kbloj7pqkjkj "body_text extraction broken after site redesign — CSS classes renamed, h1 downgraded to h2"
+```
 
-## 6: Heal it (60s)
+The Bright Data CLI's AI proposes a fix (updated selectors), we approve it (same Collector ID), then:
 
-- `bdata scraper heal c_fixture "100% of rows have an empty body_text field — the content extraction is broken, probably because the page layout changed. Please fix the body_text extraction for this site."`
-- Show the AI-generated diff, approve: `bdata scraper approve c_fixture`.
-- Re-run refresh → rows recovered, healthy.
-- Ask the chatbot the same question again → answer is back. Same Collector ID, nothing downstream changed.
+```bash
+bash scripts/run_refresh.sh --source fixture   # re-scrape + re-embed
+```
 
-## 7: Close (10s)
+Health check passes, rows recovered, and the bot answers the original question again with citations.
 
-- "FreshDocs: docs that stay fresh, scrapers that fix themselves. Built on Bright Data Scraper Studio."
-- Repo link + example outputs on screen.
+---
 
-## Recording notes
+## CI equivalent
+In `.github/workflows/refresh.yml`, the nightly cron runs `scripts/run_refresh.sh` with `--heal`, so the break→heal→recover loop runs automatically when real docs sites change.
 
-- Mask or use a throwaway Bright Data API token if any UI shows env config.
-- Keep terminal font large; use `--pretty` for readable JSON.
-- If recording in one take: pre-warm all tabs, and have break/restore fixture commits staged.
+## Key message for judges
+- **Problem:** docs go stale daily; RAG pipelines are static.
+- **Solution:** Bright Data Sitemap collectors on a schedule + content-hash diff → re-embed only what changed.
+- **Differentiator:** health checks detect breakage → `bdata scraper heal + approve` on the same Collector ID → zero downstream changes, bot recovers instantly.

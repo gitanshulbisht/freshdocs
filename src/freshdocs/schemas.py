@@ -29,15 +29,15 @@ class DocRow(BaseModel):
                     return value.strip()
             return ""
 
-        url = first("url", "canonical_url", "canonicalURL", "page_url", "pageUrl")
+        url = first("url", "canonical_url", "canonicalURL", "page_url", "pageUrl", "product_page_url")
         if not url and isinstance(raw.get("input"), dict):
             url = str(raw["input"].get("url") or "").strip()
 
-        body = first("body_text", "bodyText", "body", "content", "text", "main_text", "article")
+        body = first("body_text", "bodyText", "body", "main_content", "content", "text", "main_text", "article")
         title = first("title", "page_title", "pageTitle", "name", "heading")
 
         updated = None
-        for key in ("last_updated", "lastUpdated", "updated_at", "last_modified", "modified"):
+        for key in ("last_updated", "lastUpdated", "updated_at", "last_modified", "last_modified_date", "modified"):
             value = raw.get(key)
             if isinstance(value, str) and value.strip():
                 updated = value.strip()

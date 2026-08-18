@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -e .
 
       - name: Set up Bright Data CLI
         run: npx -y -p @brightdata/cli bdata --version
@@ -27,7 +27,7 @@ jobs:
         env:
           BRIGHT_DATA_API_TOKEN: ${{ secrets.BRIGHT_DATA_API_TOKEN }}
           BRIGHT_DATA_COLLECTOR_IDS: ${{ secrets.BRIGHT_DATA_COLLECTOR_IDS }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           FRESHDOCS_DATA_DIR: data
         run: |
           python -m freshdocs.cli refresh --heal || echo "REFRESH_HAD_FAILURES=1" >> "$GITHUB_ENV"

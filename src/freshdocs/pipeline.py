@@ -54,10 +54,23 @@ def effective_collector_id(source: SourceConfig, env_ids: dict[str, str]) -> str
 
 
 def collect_source(client: BrightDataClient, source: SourceConfig) -> list[dict[str, Any]]:
+    """Collect rows for one source and normalize Bright Data's field spellings."""
     collector_id = effective_collector_id(source, collector_ids_from_env())
     if not collector_id:
         raise RuntimeError(f"no collector id for source '{source.key}' — create it with bdata scraper create")
-    return client.collect(collector_id, [{"url": source.sitemap_url}])
+    raw_rows = client.collect(collector_id, [{"url": source.sitemap_url}])
+    normalized: list[dict[str, Any]] = []
+    for raw in raw_rows:
+        if not (raw.get("url") or raw.get("product_page_url") or "").strip():
+            continue
+        doc = DocRow.from_collector(raw)
+        normalized.append({
+            "url": doc.url,
+            "title": doc.title or "",
+            "body_text": doc.body or "",
+            "last_updated": doc.last_updated,
+        })
+    return normalized
 
 
 class Pipeline:

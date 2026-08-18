@@ -54,7 +54,7 @@ def cmd_refresh(args: argparse.Namespace) -> int:
             failed = True
             for failure in outcome.failures:
                 print(f"\nHEALTH FAILURE [{source.key}] -> {failure.symptom}\n", file=sys.stderr)
-                if args.heal and failure.collector_id:
+                if args.heal and failure.collector_id and not args.dry_run:
                     log.info("auto-healing %s ...", source.key)
                     try:
                         log_text = heal_and_approve(failure.collector_id, failure.symptom)

@@ -8,12 +8,13 @@ Run `bdata scraper run <collector_id> <sitemap_url>` or trigger via the API. If 
 
 | Source | Collector ID |
 |---|---|
-| docker | *(pending)* |
-| kubernetes | *(pending)* |
-| aws-eks | *(pending)* |
-| argo-workflows | *(pending)* |
-| langchain | *(pending)* |
-| fixture | *(pending)* |
+| docker | `c_msy8jxs51evybyw114` |
+| kubernetes | `c_msygh24z9gew9y4g5` |
+| aws-eks | `c_msyhh3a6292e0hhfwe` |
+| argo-cd | `c_msyg8e3d240gd99n4h` |
+| github-actions | `c_msyhyf8e2nic9gcflv` |
+| langchain | `c_msyfibfq1rricg2xtx` |
+| fixture | `c_msya0kbloj7pqkjkj` |
 
 ## Working with the Bright Data CLI
 
@@ -33,6 +34,6 @@ bdata scraper approve <collector_id>                # accept fix (--reject to di
 ## Project conventions
 
 - Python 3.11+, venv via `uv`; deps in requirements.txt
-- Env vars: `BRIGHT_DATA_API_TOKEN`, `BRIGHT_DATA_COLLECTOR_IDS` (JSON map), `OPENAI_API_KEY` — from `.env`, never committed
+- Env vars: `BRIGHT_DATA_API_TOKEN`, `BRIGHT_DATA_COLLECTOR_IDS` (JSON map), `OPENROUTER_API_KEY` (or `OPENAI_API_KEY` if provider=openai) — from `.env`, never committed
 - Source registry: `collectors/collectors.json` (update collector IDs here too)
 - Tests: `pytest`; keep the Bright Data client and health rules covered

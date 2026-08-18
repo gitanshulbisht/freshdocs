@@ -1,0 +1,18 @@
+{
+  "collector_id": "c_msygh24z9gew9y4g5",
+  "name": "freshdocs-kubernetes",
+  "status": "done",
+  "completed_steps": [
+    "prepare_intent_analyzer",
+    "user_intent_analyzer",
+    "discovery_node_nested",
+    "output_schema_generator",
+    "input_schema_generator",
+    "code_generator",
+    "preview_runner",
+    "preview_picker"
+  ],
+  "view_url": "https://brightdata.com/cp/scrapers/c_msygh24z9gew9y4g5",
+  "created_at": "2026-08-18T09:23:52Z",
+  "error": null
+}

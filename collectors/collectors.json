@@ -6,7 +6,7 @@
       "category": "DevOps",
       "name": "Docker Docs",
       "sitemap_url": "https://docs.docker.com/sitemap.xml",
-      "collector_id": "",
+      "collector_id": "c_msy8jxs51evybyw114",
       "expected_urls": 800,
       "create_prompt": "Build a Sitemap scraper using this sitemap: https://docs.docker.com/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
     },
@@ -15,7 +15,7 @@
       "category": "DevOps",
       "name": "Kubernetes Docs",
       "sitemap_url": "https://kubernetes.io/en/sitemap.xml",
-      "collector_id": "",
+      "collector_id": "c_msygh24z9gew9y4g5",
       "expected_urls": 800,
       "create_prompt": "Build a Sitemap scraper using this sitemap: https://kubernetes.io/en/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
     },
@@ -24,25 +24,34 @@
       "category": "Cloud",
       "name": "AWS EKS User Guide",
       "sitemap_url": "https://docs.aws.amazon.com/eks/latest/userguide/sitemap.xml",
-      "collector_id": "",
+      "collector_id": "c_msyhh3a6292e0hhfwe",
       "expected_urls": 400,
       "create_prompt": "Build a Sitemap scraper using this sitemap: https://docs.aws.amazon.com/eks/latest/userguide/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
     },
     {
-      "key": "argo-workflows",
+      "key": "argo-cd",
       "category": "CI/CD",
-      "name": "Argo Workflows Docs",
-      "sitemap_url": "https://argo-workflows.readthedocs.io/en/release-4.1/sitemap.xml",
-      "collector_id": "",
-      "expected_urls": 200,
-      "create_prompt": "Build a Sitemap scraper using this sitemap: https://argo-workflows.readthedocs.io/en/release-4.1/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+      "name": "Argo CD Docs",
+      "sitemap_url": "https://argo-cd.readthedocs.io/sitemap.xml",
+      "collector_id": "c_msyg8e3d240gd99n4h",
+      "expected_urls": 100,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://argo-cd.readthedocs.io/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
+    },
+    {
+      "key": "github-actions",
+      "category": "CI/CD",
+      "name": "GitHub Actions Docs",
+      "sitemap_url": "https://docs.github.com/en/actions/sitemap.xml",
+      "collector_id": "c_msyhyf8e2nic9gcflv",
+      "expected_urls": 50,
+      "create_prompt": "Build a Sitemap scraper for GitHub Actions documentation (https://docs.github.com/en/actions/). Extract: page title, canonical URL, main body text (article content, navigation/footer excluded), and last-updated date if present. Return one JSON row per page."
     },
     {
       "key": "langchain",
       "category": "AI",
       "name": "LangChain Docs",
       "sitemap_url": "https://docs.langchain.com/sitemap.xml",
-      "collector_id": "",
+      "collector_id": "c_msyfibfq1rricg2xtx",
       "expected_urls": 1200,
       "create_prompt": "Build a Sitemap scraper using this sitemap: https://docs.langchain.com/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts), and last-updated date if the page shows one. Return one row per page."
     },
@@ -50,10 +59,10 @@
       "key": "fixture",
       "category": "Demo",
       "name": "Fixture Docs (self-healing demo)",
-      "sitemap_url": "https://<your-github-pages>.github.io/freshdocs-fixture/sitemap.xml",
-      "collector_id": "",
-      "expected_urls": 4,
-      "create_prompt": "Build a Sitemap scraper using this sitemap: https://<your-github-pages>.github.io/freshdocs-fixture/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts). Return one row per page."
+      "sitemap_url": "https://gitanshulbisht.github.io/freshdocs-fixture/sitemap.xml",
+      "collector_id": "c_msya0kbloj7pqkjkj",
+      "expected_urls": 5,
+      "create_prompt": "Build a Sitemap scraper using this sitemap: https://gitanshulbisht.github.io/freshdocs-fixture/sitemap.xml. Visit every documentation page listed in the sitemap and extract: page title, canonical URL, main body text (the article content, cleaned of navigation/footer/scripts). Return one row per page."
     }
   ]
 }

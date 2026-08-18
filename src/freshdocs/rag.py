@@ -54,7 +54,7 @@ class Rag:
         self.answer_model = answer_model or os.environ.get("FRESHDOCS_ANSWER_MODEL")
         if provider == "openrouter":
             self.embed_model = self.embed_model or os.environ.get("FRESHDOCS_OPENROUTER_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b")
-            self.answer_model = self.answer_model or os.environ.get("FRESHDOCS_OPENROUTER_CHAT_MODEL", "nvidia/nemotron-3.5-lightning:free")
+            self.answer_model = self.answer_model or os.environ.get("FRESHDOCS_OPENROUTER_CHAT_MODEL", "deepseek/deepseek-v4-flash-0731")
             self.client = OpenAI(
                 api_key=self.api_key,
                 base_url="https://openrouter.ai/api/v1",

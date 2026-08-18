@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from freshdocs.pipeline import Pipeline, RefreshOutcome
+from freshdocs.pipeline import Pipeline, RefreshOutcome, collect_source
 from freshdocs.schemas import SourceConfig
 
 
@@ -81,3 +81,24 @@ def test_unhealthy_scrape_is_rejected_without_index_mutation(tmp_path: Path):
     assert not outcome.ok
     assert outcome.failures
     assert pipeline.index.page_count("docker") == 0
+
+
+def test_collect_source_normalizes_field_spelling():
+    """collect_source should map Bright Data's main_content/page_title to body_text/title."""
+    client = FakeClient()
+    client.rows = [[
+        {
+            "product_page_url": "https://docs.example.com/page1",
+            "page_title": "Example Page 1",
+            "main_content": "# Page 1\n\nThis is the body text.",
+            "last_modified_date": "2026-01-01T00:00:00Z",
+        },
+        {"url": ""},  # empty URL should be filtered out
+    ]]
+    rows = collect_source(client, make_source())
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["url"] == "https://docs.example.com/page1"
+    assert row["title"] == "Example Page 1"
+    assert "body text" in row["body_text"]
+    assert row["last_updated"] == "2026-01-01T00:00:00Z"
