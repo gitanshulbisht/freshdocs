@@ -33,6 +33,9 @@ SNAPSHOTS = {
     "github-actions": "j_mt42iwgv1o08csw6fk",
     "argo-cd": "j_mt42iwhi12wp872q27",
     "aws-eks": "j_mt42o80bez8afll19",
+    # These are still collecting — the script skips them until ready
+    "docker": "j_mt45amdyy6o9v8dlh",
+    "kubernetes": "j_mt45yspu23s03gya2v",
 }
 
 _TAG_RE = re.compile(r"<[^>]+>")
@@ -61,7 +64,7 @@ def simple_chunk(text: str, max_chars: int = CHUNK_CHARS) -> list[Chunk]:
     return chunks
 
 
-def main() -> None:
+def main(sources: list[str] | None = None) -> None:
     client = BrightDataClient()
 
     try:
@@ -80,7 +83,10 @@ def main() -> None:
     embed_count = 0
     t0 = time.time()
 
-    for key, snapshot_id in SNAPSHOTS.items():
+    targets = SNAPSHOTS if sources is None else {
+        k: v for k, v in SNAPSHOTS.items() if k in sources
+    }
+    for key, snapshot_id in targets.items():
         source = registry.by_key(key)
         print(f"=== {key} ({snapshot_id}) ===", flush=True)
 
@@ -174,4 +180,9 @@ def simple_chunk_count(text: str) -> int:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Re-index Bright Data snapshots")
+    parser.add_argument("--sources", nargs="*", default=None,
+                        help="only index these source keys (default: all)")
+    args = parser.parse_args()
+    main(sources=args.sources)
