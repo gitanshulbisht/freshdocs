@@ -100,9 +100,16 @@ After fixing the field name bug, the scraped data was already available from ear
 12. **Parallel scraper issues** — Running 5+ Bright Data scrapers simultaneously slowed down all scrapers. Switched to sequential scraping
 13. **Indexed 3 sources** — Downloaded and indexed GitHub Actions (205 pages, 395 chunks), Argo CD (449 pages, 570 chunks), AWS EKS (54 pages, 102 chunks) in 209 seconds total (batched embeddings vs ~30+ min sequential)
 14. **Docker scraper (running)** — Started Docker scraper sequentially (snapshot j_mt45amdyy6o9v8dlh, 5-hr timeout). Estimated ~3 hrs to complete
+15. **Re-indexed all sources** — Re-ran `index_ready.py` for Docker (1645 rows, 2300 chunks), Kubernetes (1896 rows, 2080 chunks), and LangChain (1543 rows, 2679 chunks) using fixed field normalization (0 empty titles). Total: 5084 pages, 7052 embeddings in 3137s
+16. **Re-indexed small sources** — Re-ran `index_ready.py` for GitHub Actions (205 pages, 395 chunks), Argo CD (449 pages, 570 chunks), AWS EKS (54 pages, 102 chunks) in 482s. Added LangChain and Fixture snapshot IDs to SNAPSHOTS dict
+17. **Fixture re-scrape + re-index** — Triggered fresh fixture scrape (5 pages, snapshot j_mt4fiibk2itsp6ws3i), re-indexed via `index_ready.py`. All 7 sources now have embeddings
+18. **Embedding API hang fix** — Fixed OpenRouter API hangs during embedding by switching from OpenAI SDK to `urllib.request` with 15s socket timeout, 1-by-1 retry fallback, and reduced batch size (10 vs 50). The SDK's timeout didn't catch connection-pool hangs
+19. **Budget check** — OpenRouter has $20 free credits ($0.31 used). Embeddings use `qwen/qwen3-embedding-8b` (free). No API costs incurred by re-indexing
+20. **Full pipeline verified** — All 85 tests pass; RAG retrieval confirmed across all 7 sources (Docker, Kubernetes, LangChain, GitHub Actions, Argo CD, AWS EKS, Fixture). Index: 5780 pages, 8080 chunks
 
 ## Files Changed
 
-- **New (19):** 7 `collectors/*.json`, 7 `tests/test_*.py`, `data/outputs/fixture.json`, `demo/DEMO_SCRIPT.md`, `scripts/index_ready.py`, `journey.md`
-- **Modified:** `README.md`, `CLAUDE.md`, `collectors/collectors.json`, `.env.example`, `.env`, `.github/workflows/refresh.yml`, `src/freshdocs/{pipeline,main,rag,schemas,brightdata,ingest}.py`, `scripts/*.sh`, 3 `demo/fixture-site/*` files, `tests/test_pipeline.py`
+- **New:** `collectors/*.json`, `scripts/index_ready.py`, `scripts/index_existing.py`, `scripts/monitor_and_index.py`, `journey.md`, `uv.lock`
+- **Modified:** `src/freshdocs/{rag,schemas,brightdata,ingest,pipeline}.py`, `journey.md`, `README.md`, `CLAUDE.md`
+- **Tests:** 85 tests across 11 files — all passing
 - **Deleted (4):** stale `demo/fixture-site/{README.md,api.html,install.html,style.css}` from the old FixtureDocs design
