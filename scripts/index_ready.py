@@ -35,6 +35,7 @@ CHUNK_CHARS = 8000
 EMBED_TIMEOUT_S = 15.0
 
 SNAPSHOTS = {
+    "fixture": "j_mt4fiibk2itsp6ws3i",
     "github-actions": "j_mt42iwgv1o08csw6fk",
     "argo-cd": "j_mt42iwhi12wp872q27",
     "aws-eks": "j_mt42o80bez8afll19",
