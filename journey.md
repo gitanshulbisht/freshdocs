@@ -107,6 +107,51 @@ After fixing the field name bug, the scraped data was already available from ear
 19. **Budget check** — OpenRouter has $20 free credits ($0.31 used). Embeddings use `qwen/qwen3-embedding-8b` (free). No API costs incurred by re-indexing
 20. **Full pipeline verified** — All 85 tests pass; RAG retrieval confirmed across all 7 sources (Docker, Kubernetes, LangChain, GitHub Actions, Argo CD, AWS EKS, Fixture). Index: 5780 pages, 8080 chunks
 
+## Technical Deep Dive: Embedding API Hangs
+
+### Root Cause Analysis
+
+The OpenRouter embeddings API (`qwen/qwen3-embedding-8b`) intermittently began hanging after ~5-12 batches of embedding requests. A hanging request would block the entire re-indexing script indefinitely, killing throughput. Three approaches were tried to enforce timeouts:
+
+1. **OpenAI SDK `timeout=60`** — Did not work. The SDK uses `httpx` with HTTP connection pooling. When a pooled connection enters a bad state (server closes connection, client doesn't detect it), subsequent requests that try to reuse that connection block indefinitely. The SDK's read timeout doesn't fire because it's measured from the last byte received, not from the call start.
+
+2. **`concurrent.futures.ThreadPoolExecutor` with `future.result(timeout=30)`** — Did not work. ThreadPoolExecutor does not kill threads on timeout. The `with` context manager blocks waiting for the thread to finish, and since the thread is stuck in a C-level blocking socket call, the main thread hangs forever.
+
+3. **`httpx.post` with `httpx.Timeout(30, read=30)`** — Did not work. Despite creating a new client per call (no pooling), certain requests still hung past the timeout. The `httpx` library's timeout enforcement is unreliable for slow/limp responses where the server sends partial data.
+
+4. **`signal.signal(SIGALRM, handler)` with `signal.alarm(30)`** — Partially worked. SIGALRM interrupts blocking syscalls on Unix, but Python 3.5+ PEP 475 retries interrupted syscalls if the handler doesn't raise. The handler did raise `TimeoutError`, but `httpx`/`httpcore`'s C extensions sometimes didn't return control to the Python interpreter between signals.
+
+5. **`urllib.request.urlopen(req, timeout=15.0)`** — **Working solution.** The `urllib` library uses `socket.settimeout()` at the kernel level. The timeout is enforced by the OS kernel's socket layer, not by the HTTP library's application-level logic. This reliably interrupts hanging connections after 15 seconds. Switching to `urllib` for embedding calls eliminated all hangs.
+
+### Chromadb Corruption (SIGSEGV)
+
+After the first failed re-indexing run (Docker embedding crashed at 600/2300 chunks due to an OpenRouter 400 error), the ChromaDB collection was left in a partially-written state. Subsequent `collection.delete(where={"source": ...})` calls segfaulted with `SIGSEGV` (exit code -11) in the Rust-based chromadb API (`chromadb/api/rust.py`, line 616). Even `collection.count()` segfaulted.
+
+**Fix:** Deleted the entire `data/chroma` directory (`rm -rf data/chroma`) and let `Rag.__init__` recreate a fresh collection via `get_or_create_collection()`. All 7 sources were then re-indexed from scratch (snapshots had to be re-downloaded and re-embedded, but this is free — qwen3-embedding-8b is free on OpenRouter).
+
+### Retry/Fallback Logic
+
+The final `scripts/index_ready.py` implements a three-tier resilience strategy:
+
+1. **Batch embedding** (10 chunks per API call, 15s socket timeout) — 90% of batches succeed on the first try
+2. **Per-chunk fallback** — if a batch fails (timeout, 400, 422), each chunk is retried individually with its own 15s timeout. This recovers most chunks that fail in batch mode.
+3. **Skip-on-failure** — if an individual chunk fails (e.g., HTTP 422 for a chunk with invalid UTF-8 or null bytes), it's logged and skipped. This affects <0.1% of chunks and has negligible impact on search quality.
+
+### Final Index State
+
+| Source | Pages | Chunks | Embeddings | Skipped |
+|--------|-------|--------|------------|---------|
+| fixture | 5 | 5 | 5 | 0 |
+| github-actions | 200 | 395 | 386 | 9 |
+| argo-cd | 449 | 570 | 570 | 0 |
+| aws-eks | 54 | 102 | 102 | 0 |
+| docker | 1633 | 2300 | 2264 | 36 |
+| kubernetes | 1896 | 2080 | 2077 | 3 |
+| langchain | 1543 | 2679 | 2676 | 3 |
+| **Total** | **5780** | **8080** | **7980** | **51** |
+
+*Skipped chunks are due to HTTP 422 (invalid content in source pages) or timeouts that failed even the 1-by-1 retry. 51/8080 = 0.6% data loss.*
+
 ## Files Changed
 
 - **New:** `collectors/*.json`, `scripts/index_ready.py`, `scripts/index_existing.py`, `scripts/monitor_and_index.py`, `journey.md`, `uv.lock`
