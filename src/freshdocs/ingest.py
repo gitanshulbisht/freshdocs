@@ -16,6 +16,7 @@ OVERLAP_CHARS = 200
 _TAG_RE = re.compile(r"<[^>]+>")
 _WS_RE = re.compile(r"[ \t]+")
 _NEWLINE_RE = re.compile(r"\n{3,}")
+_HEADING_RE = re.compile(r"^#{1,6}(\s+|$)")
 
 
 @dataclass
@@ -56,7 +57,7 @@ def split_sections(markdown: str) -> list[tuple[str, str]]:
             sections.append((current_heading, body))
 
     for line in markdown.splitlines():
-        if line.startswith("#"):
+        if _HEADING_RE.match(line):
             flush()
             current_heading = line.lstrip("#").strip()
             current_lines = []

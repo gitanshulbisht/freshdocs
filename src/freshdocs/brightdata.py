@@ -67,7 +67,7 @@ class BrightDataClient:
         return response.json()
 
     def collect(self, collector_id: str, inputs: list[dict[str, str]],
-                max_wait_s: float = 1800.0) -> list[dict[str, Any]]:
+                max_wait_s: float = 18000.0) -> list[dict[str, Any]]:
         """Trigger + poll until the dataset is ready; return the row list.
 
         Returns [] (rather than raising) if the snapshot ends with zero rows —

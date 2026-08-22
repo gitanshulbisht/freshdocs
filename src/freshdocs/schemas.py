@@ -33,8 +33,14 @@ class DocRow(BaseModel):
         if not url and isinstance(raw.get("input"), dict):
             url = str(raw["input"].get("url") or "").strip()
 
-        body = first("body_text", "bodyText", "body", "main_content", "content", "text", "main_text", "article")
-        title = first("title", "page_title", "pageTitle", "name", "heading")
+        body = first("body_text", "bodyText", "body", "main_content", "content",
+                     "text", "main_text", "article", "article_content", "main_body_text",
+                     "page_content")
+        title = first("title", "page_title", "pageTitle", "name", "heading",
+                      "article_title", "page_heading", "meta_title")
+        if not title and url:
+            last_segment = url.rstrip("/").rsplit("/", 1)[-1]
+            title = last_segment.replace("-", " ").replace("_", " ").title()
 
         updated = None
         for key in ("last_updated", "lastUpdated", "updated_at", "last_modified", "last_modified_date", "modified"):
