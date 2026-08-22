@@ -36,7 +36,8 @@ class RagError(RuntimeError):
 class Rag:
     def __init__(self, data_dir: Path, api_key: Optional[str] = None,
                  embed_model: Optional[str] = None, answer_model: Optional[str] = None,
-                 provider: Optional[str] = None) -> None:
+                 provider: Optional[str] = None, timeout: float = 60.0,
+                 max_retries: int = 3) -> None:
         provider = (provider or os.environ.get("FRESHDOCS_LLM_PROVIDER", "openrouter")).lower()
         if provider not in ("openrouter", "openai"):
             raise RagError(f"Unsupported LLM provider: {provider}")
@@ -59,11 +60,13 @@ class Rag:
                 api_key=self.api_key,
                 base_url="https://openrouter.ai/api/v1",
                 default_headers=OPENROUTER_HEADERS,
+                timeout=timeout,
+                max_retries=max_retries,
             )
         else:
             self.embed_model = self.embed_model or os.environ.get("FRESHDOCS_EMBED_MODEL", "text-embedding-3-small")
             self.answer_model = self.answer_model or os.environ.get("FRESHDOCS_ANSWER_MODEL", "gpt-4o-mini")
-            self.client = OpenAI(api_key=self.api_key)
+            self.client = OpenAI(api_key=self.api_key, timeout=timeout, max_retries=max_retries)
 
         chroma_dir = data_dir / "chroma"
         chroma_dir.mkdir(parents=True, exist_ok=True)
