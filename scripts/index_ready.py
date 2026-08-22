@@ -4,7 +4,7 @@
 Downloads existing snapshot datasets via GET /dca/dataset and re-indexes them
 through the pipeline with corrected field-name normalization.  Uses paragraph-based
 chunking (not heading-split) to avoid 300+ tiny chunks per page.  Batches are
-embedded 5-at-a-time with a 15-second httpx timeout per request.  On batch failure,
+embedded 10-at-a-time with a 15-second socket timeout per request.  On batch failure,
 falls back to 1-by-1 embedding so a single bad chunk never aborts the whole source.
 """
 
@@ -14,7 +14,8 @@ import argparse
 import re
 import sys
 import time
-import httpx
+import json as json_mod
+import urllib.request
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -29,9 +30,9 @@ from freshdocs.index import content_hash, utcnow
 
 DATA_DIR = Path("data")
 REGISTRY_PATH = Path("collectors/collectors.json")
-BATCH_SIZE = 5
+BATCH_SIZE = 10
 CHUNK_CHARS = 8000
-EMBED_TIMEOUT = httpx.Timeout(30.0, connect=5.0, read=30.0, write=5.0, pool=5.0)
+EMBED_TIMEOUT_S = 15.0
 
 SNAPSHOTS = {
     "github-actions": "j_mt42iwgv1o08csw6fk",
@@ -73,9 +74,8 @@ def simple_chunk_count(text: str) -> int:
 
 
 def _openrouter_embed(rag: Rag, texts: list[str]) -> list[list[float]]:
-    """Call OpenRouter embeddings API directly via httpx (not the OpenAI SDK)
-    so the HTTP timeout is properly enforced — the SDK was hanging on bad
-    pooled connections."""
+    """Call OpenRouter embeddings API via urllib.request with a socket-level
+    timeout (15s) — the most reliable way to catch hanging requests."""
     if rag.provider == "openrouter":
         url = "https://openrouter.ai/api/v1/embeddings"
         headers = {
@@ -90,11 +90,10 @@ def _openrouter_embed(rag: Rag, texts: list[str]) -> list[list[float]]:
             "Authorization": f"Bearer {rag.api_key}",
             "Content-Type": "application/json",
         }
-    resp = httpx.post(url, headers=headers, json={
-        "model": rag.embed_model, "input": texts,
-    }, timeout=EMBED_TIMEOUT)
-    resp.raise_for_status()
-    data = resp.json()
+    payload = json_mod.dumps({"model": rag.embed_model, "input": texts}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=EMBED_TIMEOUT_S) as response:
+        data = json_mod.loads(response.read().decode("utf-8"))
     return [item["embedding"] for item in data["data"]]
 
 
@@ -227,7 +226,7 @@ def main(sources: list[str] | None = None) -> None:
                 embed_count += len(ids)
                 done = min(batch_start + BATCH_SIZE, len(all_chunks))
                 print(f"  {key}: embedded {done}/{len(all_chunks)} ({time.time() - t0:.1f}s)", flush=True)
-                time.sleep(1)  # rate-limit buffer
+                time.sleep(0.3)  # rate-limit buffer
 
         notes = f"embedded={embed_count}" if rag else "no embedding (Rag unavailable)"
         pipeline.index.finish_run(
